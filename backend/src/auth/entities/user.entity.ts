@@ -1,7 +1,10 @@
+import { Bookings } from 'src/booking/entities/bookings.entity';
+import { Shops } from 'src/shops/entities/shops.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -47,6 +50,12 @@ export class User {
 
   @Column({ default: true })
   isActive: boolean;
+
+  @OneToMany(() => Shops, (shop) => shop.owner)
+  shops: Shops;
+
+  @OneToMany(() => Bookings, (booking) => booking.user)
+  bookings: Bookings[];
 
   @CreateDateColumn()
   createdAt: Date;

@@ -1,7 +1,12 @@
+import { User } from 'src/auth/entities/user.entity';
+import { Bookings } from 'src/booking/entities/bookings.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -24,7 +29,13 @@ export class Shops {
   description: string;
 
   @Column()
-  numberOfTable: number;
+  totalCapacity: number;
+
+  @Column({ default: 60 })
+  defaultDuration: number;
+
+  @Column({ type: 'decimal', precision: 3, scale: 2, default: 1.15 })
+  overbookingRate: number; // 1.15 = 115%
 
   @Column({ type: 'time' })
   openTime: string;
@@ -44,6 +55,16 @@ export class Shops {
     default: 'pending',
   })
   status: string;
+
+  // Owner relation
+  @ManyToOne(() => User, (user) => user.shops)
+  owner: User;
+
+  @OneToMany(() => Bookings, (booking) => booking.shop)
+  bookings: Bookings[];
+
+  // @OneToMany(() => Reviews, (review) => review.shop)
+  // reviews: Reviews[];
 
   @CreateDateColumn()
   createdAt: Date;

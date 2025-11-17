@@ -19,7 +19,7 @@ export class CreateShopDto {
 
   @IsNotEmpty()
   @IsNumber()
-  numberOfTable: number;
+  totalCapacity: number;
 
   @IsNotEmpty()
   @IsString()

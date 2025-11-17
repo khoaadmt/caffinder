@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ShopRepository } from '../repository/shops.repository';
-import { CreateShopDto } from './../dto/createShops.dto';
-import { UpdateShopDto } from './../dto/updateShop.dto';
+import { CreateShopDto } from '../dto/create-shops.dto';
+import { UpdateShopDto } from '../dto/update-shop.dto';
 
 require('dotenv').config();
 

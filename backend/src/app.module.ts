@@ -15,6 +15,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { ShopsModule } from './shops/shops.module';
 import { VerifyTokenMiddleware } from './middlewares/logging.middleware';
+import { BookingsModule } from './booking/bookings.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { VerifyTokenMiddleware } from './middlewares/logging.middleware';
 
     AuthModule,
     ShopsModule,
+    BookingsModule,
   ],
   providers: [],
 })
