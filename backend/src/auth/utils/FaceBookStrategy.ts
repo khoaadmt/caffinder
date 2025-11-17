@@ -3,10 +3,6 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy } from 'passport-facebook';
 import { VerifyCallback } from 'passport-google-oauth20';
 require('dotenv').config();
-console.log(
-  ' callbackURL fb:',
-  `${process.env.SERVER_URL}/api/auth/facebook/redirect`,
-);
 
 @Injectable()
 export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {

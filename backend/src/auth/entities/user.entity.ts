@@ -42,8 +42,11 @@ export class User {
   @Column({ default: 'access_token' })
   accessToken: string;
 
-  @Column({ default: 'member' })
+  @Column({ default: 'user' })
   role: string;
+
+  @Column({ default: true })
+  isActive: boolean;
 
   @CreateDateColumn()
   createdAt: Date;
