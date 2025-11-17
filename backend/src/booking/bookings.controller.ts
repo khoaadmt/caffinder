@@ -33,13 +33,13 @@ export class BookingsController {
   @Post()
   @UseGuards(JwtAuthGuard)
   async createBooking(@Request() req, @Body() dto: CreateBookingDto) {
-    return await this.bookingsService.createBooking(req.user.id, dto);
+    return await this.bookingsService.createBooking(req.user.user_id, dto);
   }
 
   // @Get('my')
   // @UseGuards(JwtAuthGuard)
   // async getMyBookings(@Request() req, @Query() query: QueryBookingDto) {
-  //   return await this.bookingsService.getUserBookings(req.user.id, query);
+  //   return await this.bookingsService.getUserBookings(req.user.user_id, query);
   // }
 
   // @Get(':id')

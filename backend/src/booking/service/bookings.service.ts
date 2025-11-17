@@ -12,12 +12,14 @@ import { CheckAvailabilityDto } from '../dto/check-availability.dto';
 import { CreateBookingDto } from '../dto/create-booking.dto';
 import { QueryBookingDto } from '../dto/query-booking.dto';
 import * as moment from 'moment';
+import { BookingRepository } from '../repository/booking.repository';
 
 @Injectable()
 export class BookingsService {
   constructor(
     @InjectRepository(Bookings)
     private bookingsRepo: Repository<Bookings>,
+    private readonly bookingsRepository: BookingRepository,
 
     @InjectRepository(Shops)
     private shopsRepo: Repository<Shops>,
@@ -74,24 +76,22 @@ export class BookingsService {
       .clone()
       .add(shop.defaultDuration, 'minutes');
 
-    const overlappingBookings = await this.bookingsRepo
-      .createQueryBuilder('booking')
-      .where('booking.shopId = :shopId', { shopId })
-      .andWhere('booking.bookingDate = :date', { date })
-      .andWhere('booking.status IN (:...statuses)', {
-        statuses: [BookingStatus.CONFIRMED, BookingStatus.PENDING],
-      })
-      .andWhere(
-        `(booking."bookingTime")::time < :requestEnd AND (booking."endTime")::time > :requestStart`,
-        {
-          requestStart: requestStart.format('HH:mm:ss'),
-          requestEnd: requestEnd.format('HH:mm:ss'),
-        },
-      )
+    const overlappingBookings = await this.bookingsRepository.getBookingsInTime(
+      shopId,
+      date,
+      requestStart,
+      requestEnd,
+    );
 
-      .getMany();
+    let occupiedSeats = this.countSeats(
+      overlappingBookings,
+      BookingStatus.CONFIRMED,
+    );
 
-    let occupiedSeats = 0;
+    const seatsWating = this.countSeats(
+      overlappingBookings,
+      BookingStatus.PENDING,
+    );
 
     const maxCapacity = shop.totalCapacity;
     const effectiveCapacity = Math.floor(
@@ -125,6 +125,7 @@ export class BookingsService {
       maxCapacity,
       effectiveCapacity,
       occupiedSeats,
+      seatsWating,
       confidence,
       duration: shop.defaultDuration,
       estimatedEndTime: requestEnd.format('HH:mm'),
@@ -134,6 +135,14 @@ export class BookingsService {
           : `Không đủ chỗ. Còn ${availableSeats} chỗ, cần ${numberOfGuests} chỗ`,
       suggestedTimes,
     };
+  }
+
+  countSeats(booking: Bookings[], status: BookingStatus) {
+    return booking
+      .filter((b) => b.status == status)
+      .reduce((acc, b) => {
+        return (acc += b.numberOfGuests);
+      }, 0);
   }
 
   private async suggestAlternativeTimes(
@@ -199,28 +208,30 @@ export class BookingsService {
       .add(shop.defaultDuration, 'minutes')
       .format('HH:mm');
 
-    const booking = this.bookingsRepo.create({
-      user: { id: userId },
-      shop: { id: dto.shopId },
-      bookingDate: dto.bookingDate,
-      bookingTime: dto.bookingTime,
-      duration: shop.defaultDuration,
-      endTime,
-      numberOfGuests: dto.numberOfGuests,
-      customerName: dto.customerName,
-      customerPhone: dto.customerPhone,
-      note: dto.note,
-      status: BookingStatus.PENDING,
-    });
+    // const booking = this.bookingsRepo.create({
+    //   user: { id: userId },
+    //   shop: { id: dto.shopId },
+    //   bookingDate: dto.bookingDate,
+    //   bookingTime: dto.bookingTime,
+    //   duration: shop.defaultDuration,
+    //   endTime,
+    //   numberOfGuests: dto.numberOfGuests,
+    //   customerName: dto.customerName,
+    //   customerPhone: dto.customerPhone,
+    //   note: dto.note,
+    // });
 
-    await this.bookingsRepo.save(booking);
+    const newBooking = await this.bookingsRepository.create(
+      dto,
+      userId,
+      shop.id,
+      endTime,
+      shop.defaultDuration,
+    );
 
     return {
       success: true,
-      booking: await this.bookingsRepo.findOne({
-        where: { id: booking.id },
-        relations: ['shop'],
-      }),
+      booking: newBooking,
       message: 'Đặt bàn thành công! Vui lòng chờ quán xác nhận.',
     };
   }
