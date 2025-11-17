@@ -93,21 +93,6 @@ export class BookingsService {
 
     let occupiedSeats = 0;
 
-    if (preferredLocation) {
-      const locationBookings = overlappingBookings.filter(
-        (b) => b.preferredLocation === preferredLocation,
-      );
-      occupiedSeats = locationBookings.reduce(
-        (sum, booking) => sum + booking.numberOfGuests,
-        0,
-      );
-    } else {
-      occupiedSeats = overlappingBookings.reduce(
-        (sum, booking) => sum + booking.numberOfGuests,
-        0,
-      );
-    }
-
     const maxCapacity = shop.totalCapacity;
     const effectiveCapacity = Math.floor(
       maxCapacity * Number(shop.overbookingRate),
@@ -215,8 +200,8 @@ export class BookingsService {
       .format('HH:mm');
 
     const booking = this.bookingsRepo.create({
-      userId,
-      shopId: dto.shopId,
+      user: { id: userId },
+      shop: { id: dto.shopId },
       bookingDate: dto.bookingDate,
       bookingTime: dto.bookingTime,
       duration: shop.defaultDuration,
@@ -224,8 +209,6 @@ export class BookingsService {
       numberOfGuests: dto.numberOfGuests,
       customerName: dto.customerName,
       customerPhone: dto.customerPhone,
-      customerEmail: dto.customerEmail,
-      preferredLocation: dto.preferredLocation,
       note: dto.note,
       status: BookingStatus.PENDING,
     });
@@ -283,7 +266,7 @@ export class BookingsService {
     }
 
     // Check permission: user chỉ xem được booking của mình
-    if (booking.userId !== userId) {
+    if (booking.user.id !== userId) {
       throw new ForbiddenException('Bạn không có quyền xem booking này');
     }
 
@@ -442,15 +425,22 @@ export class BookingsService {
    * CANCEL BOOKING (User)
    */
   async cancelBooking(bookingId: number, userId: number) {
-    const booking = await this.bookingsRepo.findOne({
-      where: { id: bookingId },
-    });
+    const booking = await this.bookingsRepo
+      .createQueryBuilder('booking')
+      .leftJoinAndSelect('booking.user', 'user')
+      .addSelect([
+        'user.id',
+        'user.displayName',
+        'user.username',
+        'user.avaUrl',
+      ])
+      .getOne();
 
     if (!booking) {
       throw new NotFoundException('Booking không tồn tại');
     }
 
-    if (booking.userId !== userId) {
+    if (booking.user.id !== userId) {
       throw new ForbiddenException('Bạn không có quyền hủy booking này');
     }
 

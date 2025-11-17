@@ -15,6 +15,7 @@ import { RejectBookingDto } from './dto/update-booking-status.dto';
 import { BookingsService } from './service/bookings.service';
 import { CheckAvailabilityDto } from './dto/check-availability.dto';
 import { QueryBookingDto } from './dto/query-booking.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('bookings')
 export class BookingsController {
@@ -30,7 +31,7 @@ export class BookingsController {
   }
 
   @Post()
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async createBooking(@Request() req, @Body() dto: CreateBookingDto) {
     return await this.bookingsService.createBooking(req.user.id, dto);
   }

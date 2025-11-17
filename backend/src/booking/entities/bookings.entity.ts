@@ -36,7 +36,7 @@ export class Bookings {
   @Column({ type: 'time' })
   bookingTime: string;
 
-  @Column({ default: 90 })
+  @Column()
   duration: number;
 
   @Column({ type: 'time' })
