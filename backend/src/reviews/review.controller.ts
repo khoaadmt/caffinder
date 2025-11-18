@@ -33,7 +33,7 @@ export class ReviewController {
     @Param('shopId', ParseIntPipe) shopId: number,
     @Body() createReviewDto: CreateReviewDto,
   ) {
-    const userId = req.user.id;
+    const userId = req.user.user_id;
     return await this.reviewService.createReview(
       userId,
       shopId,
@@ -53,7 +53,7 @@ export class ReviewController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   async getMyReviews(@Req() req) {
-    const userId = req.user.id;
+    const userId = req.user.user_id;
     return await this.reviewService.getMyReviews(userId);
   }
 
@@ -65,7 +65,7 @@ export class ReviewController {
     @Param('id', ParseIntPipe) reviewId: number,
     @Body() replyReviewDto: ReplyReviewDto,
   ) {
-    const ownerId = req.user.id;
+    const ownerId = req.user.user_id;
     return await this.reviewService.replyReview(
       reviewId,
       ownerId,
@@ -77,7 +77,7 @@ export class ReviewController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   async deleteReview(@Req() req, @Param('id', ParseIntPipe) reviewId: number) {
-    const adminId = req.user.id;
+    const adminId = req.user.user_id;
     return await this.reviewService.deleteReview(reviewId, adminId);
   }
 }
