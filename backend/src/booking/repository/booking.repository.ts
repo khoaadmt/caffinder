@@ -11,6 +11,20 @@ export class BookingRepository {
     private bookingsRepo: Repository<Bookings>,
   ) {}
 
+  async findById(bookingId: number) {
+    return await this.bookingsRepo
+      .createQueryBuilder('booking')
+      .leftJoinAndSelect('booking.shop', 'shop')
+      .leftJoin('booking.user', 'user')
+      .addSelect([
+        'user.id',
+        'user.displayName',
+        'user.avaUrl',
+        'user.contactPhone',
+      ])
+      .where('booking.id = :bookingId', { bookingId })
+      .getOne();
+  }
   async create(
     createBookingDto: CreateBookingDto,
     userId: number,

@@ -13,6 +13,8 @@ import { CreateBookingDto } from '../dto/create-booking.dto';
 import { QueryBookingDto } from '../dto/query-booking.dto';
 import * as moment from 'moment';
 import { BookingRepository } from '../repository/booking.repository';
+import { RejectBookingDto } from '../dto/update-booking-status.dto';
+import { ShopRepository } from 'src/shops/repository/shops.repository';
 
 @Injectable()
 export class BookingsService {
@@ -20,15 +22,13 @@ export class BookingsService {
     @InjectRepository(Bookings)
     private bookingsRepo: Repository<Bookings>,
     private readonly bookingsRepository: BookingRepository,
-
-    @InjectRepository(Shops)
-    private shopsRepo: Repository<Shops>,
+    private readonly shopRepository: ShopRepository,
   ) {}
 
   async checkAvailability(dto: CheckAvailabilityDto) {
     const { shopId, date, time, numberOfGuests, preferredLocation } = dto;
 
-    const shop = await this.shopsRepo.findOne({ where: { id: shopId } });
+    const shop = await this.shopRepository.findOneById(shopId);
     if (!shop) {
       throw new NotFoundException('Quán không tồn tại');
     }
@@ -200,26 +200,13 @@ export class BookingsService {
       );
     }
 
-    const shop = await this.shopsRepo.findOne({ where: { id: dto.shopId } });
+    const shop = await this.shopRepository.findOneById(dto.shopId);
 
     const bookingTimeMoment = moment(dto.bookingTime, 'HH:mm');
     const endTime = bookingTimeMoment
       .clone()
       .add(shop.defaultDuration, 'minutes')
       .format('HH:mm');
-
-    // const booking = this.bookingsRepo.create({
-    //   user: { id: userId },
-    //   shop: { id: dto.shopId },
-    //   bookingDate: dto.bookingDate,
-    //   bookingTime: dto.bookingTime,
-    //   duration: shop.defaultDuration,
-    //   endTime,
-    //   numberOfGuests: dto.numberOfGuests,
-    //   customerName: dto.customerName,
-    //   customerPhone: dto.customerPhone,
-    //   note: dto.note,
-    // });
 
     const newBooking = await this.bookingsRepository.create(
       dto,
@@ -267,16 +254,12 @@ export class BookingsService {
    * GET BOOKING DETAIL
    */
   async getBookingDetail(bookingId: number, userId: number) {
-    const booking = await this.bookingsRepo.findOne({
-      where: { id: bookingId },
-      relations: ['shop', 'user'],
-    });
+    const booking = await this.bookingsRepository.findById(bookingId);
 
     if (!booking) {
       throw new NotFoundException('Booking không tồn tại');
     }
 
-    // Check permission: user chỉ xem được booking của mình
     if (booking.user.id !== userId) {
       throw new ForbiddenException('Bạn không có quyền xem booking này');
     }
@@ -290,151 +273,149 @@ export class BookingsService {
   /**
    * GET SHOP BOOKINGS (Owner)
    */
-  //   async getShopBookings(
-  //     shopId: number,
-  //     ownerId: number,
-  //     query?: QueryBookingDto,
-  //   ) {
-  //     // Verify owner owns this shop
-  //     const shop = await this.shopsRepo.findOne({ where: { id: shopId } });
+  async getShopBookings(
+    shopId: number,
+    ownerId: number,
+    query?: QueryBookingDto,
+  ) {
+    const shop = await this.shopRepository.findOneById(shopId);
 
-  //     if (!shop) {
-  //       throw new NotFoundException('Quán không tồn tại');
-  //     }
+    if (!shop) {
+      throw new NotFoundException('Quán không tồn tại');
+    }
 
-  //     if (shop.ownerId !== ownerId) {
-  //       throw new ForbiddenException('Bạn không phải chủ quán này');
-  //     }
+    if (shop.owner.id !== ownerId) {
+      throw new ForbiddenException('Bạn không phải chủ quán này');
+    }
 
-  //     const where: any = { shopId };
+    const where: any = { shopId };
 
-  //     if (query?.date) {
-  //       where.bookingDate = query.date;
-  //     }
+    if (query?.date) {
+      where.bookingDate = query.date;
+    }
 
-  //     if (query?.status) {
-  //       where.status = query.status;
-  //     }
+    if (query?.status) {
+      where.status = query.status;
+    }
 
-  //     const bookings = await this.bookingsRepo.find({
-  //       where,
-  //       relations: ['user'],
-  //       order: { bookingDate: 'ASC', bookingTime: 'ASC' },
-  //     });
+    const bookings = await this.bookingsRepo.find({
+      relations: ['user'],
+      select: {
+        user: {
+          id: true,
+          displayName: true,
+          avaUrl: true,
+          contactPhone: true,
+        },
+      },
+      order: { bookingDate: 'ASC', bookingTime: 'ASC' },
+    });
 
-  //     // Group by date for better UX
-  //     const grouped = bookings.reduce((acc, booking) => {
-  //       const date = moment(booking.bookingDate).format('YYYY-MM-DD');
-  //       if (!acc[date]) {
-  //         acc[date] = [];
-  //       }
-  //       acc[date].push(booking);
-  //       return acc;
-  //     }, {});
+    // Group by date for better UX
+    const grouped = bookings.reduce((acc, booking) => {
+      const date = moment(booking.bookingDate).format('YYYY-MM-DD');
+      if (!acc[date]) {
+        acc[date] = [];
+      }
+      acc[date].push(booking);
+      return acc;
+    }, {});
 
-  //     return {
-  //       success: true,
-  //       count: bookings.length,
-  //       bookings,
-  //       groupedByDate: grouped,
-  //     };
-  //   }
+    return {
+      success: true,
+      count: bookings.length,
+      bookings,
+      groupedByDate: grouped,
+    };
+  }
 
   /**
    * CONFIRM BOOKING (Owner)
    */
-  //   async confirmBooking(bookingId: number, ownerId: number) {
-  //     const booking = await this.bookingsRepo.findOne({
-  //       where: { id: bookingId },
-  //       relations: ['shop'],
-  //     });
+  async confirmBooking(bookingId: number, ownerId: number) {
+    const booking = await this.bookingsRepository.findById(bookingId);
 
-  //     if (!booking) {
-  //       throw new NotFoundException('Booking không tồn tại');
-  //     }
+    if (!booking) {
+      throw new NotFoundException('Booking không tồn tại');
+    }
 
-  //     if (booking.shop.ownerId !== ownerId) {
-  //       throw new ForbiddenException('Bạn không có quyền xác nhận booking này');
-  //     }
+    if (booking.shop.owner.id !== ownerId) {
+      throw new ForbiddenException('Bạn không có quyền xác nhận booking này');
+    }
 
-  //     if (booking.status !== BookingStatus.PENDING) {
-  //       throw new BadRequestException(
-  //         `Booking đã ở trạng thái ${booking.status}, không thể xác nhận`,
-  //       );
-  //     }
+    if (booking.status !== BookingStatus.PENDING) {
+      throw new BadRequestException(
+        `Booking đã ở trạng thái ${booking.status}, không thể xác nhận`,
+      );
+    }
 
-  //     // Check xem booking có còn hợp lệ không (capacity)
-  //     const availability = await this.checkAvailability({
-  //       shopId: booking.shopId,
-  //       date: moment(booking.bookingDate).format('YYYY-MM-DD'),
-  //       time: booking.bookingTime,
-  //       numberOfGuests: booking.numberOfGuests,
-  //     });
+    const availability = await this.checkAvailability({
+      shopId: booking.shop.id,
+      date: moment(booking.bookingDate).format('YYYY-MM-DD'),
+      time: booking.bookingTime,
+      numberOfGuests: booking.numberOfGuests,
+    });
 
-  //     if (!availability.isAvailable) {
-  //       throw new BadRequestException(
-  //         'Không thể xác nhận booking này do không đủ chỗ (có booking khác được xác nhận trước)',
-  //       );
-  //     }
+    if (!availability.isAvailable) {
+      throw new BadRequestException(
+        'Không thể xác nhận booking này do không đủ chỗ (có booking khác được xác nhận trước)',
+      );
+    }
 
-  //     booking.status = BookingStatus.CONFIRMED;
-  //     booking.confirmedAt = new Date();
+    booking.status = BookingStatus.CONFIRMED;
+    booking.confirmedAt = new Date();
 
-  //     await this.bookingsRepo.save(booking);
+    await this.bookingsRepo.save(booking);
 
-  //     // TODO: Send notification to user
+    // TODO: Send notification to user
 
-  //     return {
-  //       success: true,
-  //       booking,
-  //       message: 'Đã xác nhận booking thành công',
-  //     };
-  //   }
+    return {
+      success: true,
+      booking,
+      message: 'Đã xác nhận booking thành công',
+    };
+  }
 
   /**
    * REJECT BOOKING (Owner)
    */
-  //   async rejectBooking(
-  //     bookingId: number,
-  //     ownerId: number,
-  //     dto: RejectBookingDto,
-  //   ) {
-  //     const booking = await this.bookingsRepo.findOne({
-  //       where: { id: bookingId },
-  //       relations: ['shop'],
-  //     });
+  async rejectBooking(
+    bookingId: number,
+    ownerId: number,
+    dto: RejectBookingDto,
+  ) {
+    const booking = await this.bookingsRepository.findById(bookingId);
 
-  //     if (!booking) {
-  //       throw new NotFoundException('Booking không tồn tại');
-  //     }
+    if (!booking) {
+      throw new NotFoundException('Booking không tồn tại');
+    }
 
-  //     if (booking.shop.ownerId !== ownerId) {
-  //       throw new ForbiddenException('Bạn không có quyền từ chối booking này');
-  //     }
+    if (booking.shop.owner.id !== ownerId) {
+      throw new ForbiddenException('Bạn không có quyền từ chối booking này');
+    }
 
-  //     if (booking.status !== BookingStatus.PENDING) {
-  //       throw new BadRequestException(
-  //         `Booking đã ở trạng thái ${booking.status}, không thể từ chối`,
-  //       );
-  //     }
+    if (booking.status !== BookingStatus.PENDING) {
+      throw new BadRequestException(
+        `Booking đã ở trạng thái ${booking.status}, không thể từ chối`,
+      );
+    }
 
-  //     booking.status = BookingStatus.REJECTED;
-  //     booking.rejectionReason = dto.rejectionReason;
+    booking.status = BookingStatus.REJECTED;
+    booking.rejectionReason = dto.rejectionReason;
 
-  //     await this.bookingsRepo.save(booking);
+    await this.bookingsRepo.save(booking);
 
-  //     // TODO: Send notification to user
+    // TODO: Send notification to user
 
-  //     return {
-  //       success: true,
-  //       booking,
-  //       message: 'Đã từ chối booking',
-  //     };
-  //   }
+    return {
+      success: true,
+      booking,
+      message: 'Đã từ chối booking',
+    };
+  }
 
-  /**
-   * CANCEL BOOKING (User)
-   */
+  //  CANCEL BOOKING (User)
+
   async cancelBooking(bookingId: number, userId: number) {
     const booking = await this.bookingsRepo
       .createQueryBuilder('booking')

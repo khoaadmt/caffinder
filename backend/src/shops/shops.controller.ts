@@ -1,7 +1,18 @@
-import { Body, Controller, Get, Param, Patch, Post, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { ShopService } from './service/shops.service';
 import { CreateShopDto } from './dto/create-shops.dto';
 import { UpdateShopDto } from './dto/update-shop.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('shops')
 export class ShopController {
@@ -18,8 +29,9 @@ export class ShopController {
   }
 
   @Post('')
-  async createShop(@Body() createShopDto: CreateShopDto) {
-    return await this.shopService.createShop(createShopDto);
+  @UseGuards(JwtAuthGuard)
+  async createShop(@Body() createShopDto: CreateShopDto, @Request() req) {
+    return await this.shopService.createShop(createShopDto, req.user.user_id);
   }
 
   @Patch(':id')

@@ -58,6 +58,7 @@ export class Shops {
 
   // Owner relation
   @ManyToOne(() => User, (user) => user.shops)
+  @JoinColumn({ name: 'ownerId' })
   owner: User;
 
   @OneToMany(() => Bookings, (booking) => booking.shop)

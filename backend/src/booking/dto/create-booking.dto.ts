@@ -17,11 +17,6 @@ export class CreateBookingDto {
   @Type(() => Number)
   shopId: number;
 
-  @IsNumber()
-  @IsNotEmpty()
-  @Type(() => Number)
-  userId: number;
-
   @IsDateString()
   @IsNotEmpty()
   bookingDate: string;

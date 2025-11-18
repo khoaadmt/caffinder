@@ -16,15 +16,13 @@ import { BookingsService } from './service/bookings.service';
 import { CheckAvailabilityDto } from './dto/check-availability.dto';
 import { QueryBookingDto } from './dto/query-booking.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/utils/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @Controller('bookings')
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
-  /**
-   * CHECK AVAILABILITY (Public - không cần login)
-   * POST /bookings/check-availability
-   */
   @Post('check-availability')
   async checkAvailability(@Body() dto: CheckAvailabilityDto) {
     return await this.bookingsService.checkAvailability(dto);
@@ -42,14 +40,18 @@ export class BookingsController {
   //   return await this.bookingsService.getUserBookings(req.user.user_id, query);
   // }
 
-  // @Get(':id')
-  // @UseGuards(JwtAuthGuard)
-  // async getBookingDetail(
-  //   @Param('id', ParseIntPipe) bookingId: number,
-  //   @Request() req,
-  // ) {
-  //   return await this.bookingsService.getBookingDetail(bookingId, req.user.id);
-  // }
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async getBookingDetail(
+    @Param('id', ParseIntPipe) bookingId: number,
+    @Request() req,
+  ) {
+    console.log('req.user.id :', req.user.id);
+    return await this.bookingsService.getBookingDetail(
+      bookingId,
+      req.user.user_id,
+    );
+  }
 
   /**
    * CANCEL BOOKING (User)
@@ -68,20 +70,20 @@ export class BookingsController {
    * GET SHOP BOOKINGS (Owner)
    * GET /bookings/by-shop/:shopId?date=2025-11-20&status=pending
    */
-  // @Get('by-shop/:shopId')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('shop_owner')
-  // async getShopBookings(
-  //   @Param('shopId', ParseIntPipe) shopId: number,
-  //   @Request() req,
-  //   @Query() query: QueryBookingDto,
-  // ) {
-  //   return await this.bookingsService.getShopBookings(
-  //     shopId,
-  //     req.user.id,
-  //     query,
-  //   );
-  // }
+  @Get('by-shop/:shopId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('owner')
+  async getShopBookings(
+    @Param('shopId', ParseIntPipe) shopId: number,
+    @Request() req,
+    @Query() query: QueryBookingDto,
+  ) {
+    return await this.bookingsService.getShopBookings(
+      shopId,
+      req.user.user_id,
+      query,
+    );
+  }
 
   /**
    * CONFIRM BOOKING (Owner)

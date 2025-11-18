@@ -25,7 +25,7 @@ require('dotenv').config();
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '1h' },
+      signOptions: { expiresIn: '7d' },
     }),
     PassportModule,
   ],

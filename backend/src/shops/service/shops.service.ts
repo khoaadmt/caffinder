@@ -61,9 +61,9 @@ export class ShopService {
     }
   }
 
-  async createShop(createShopDto: CreateShopDto) {
+  async createShop(createShopDto: CreateShopDto, userId: number) {
     try {
-      const newshop = await this.shopRepository.create(createShopDto);
+      const newshop = await this.shopRepository.create(createShopDto, userId);
       return {
         message: 'create shop success.',
         newShop: newshop,

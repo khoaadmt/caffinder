@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Shops } from '../entities/shops.entity';
 import { CreateShopDto } from '../dto/create-shops.dto';
 import { UpdateShopDto } from '../dto/update-shop.dto';
+import { User } from 'src/auth/entities/user.entity';
 
 @Injectable()
 export class ShopRepository {
@@ -13,7 +14,20 @@ export class ShopRepository {
   ) {}
 
   async findOneById(id: number): Promise<Shops | null> {
-    return await this.shopRepo.findOne({ where: { id } });
+    return await this.shopRepo.findOne({
+      where: { id },
+      relations: {
+        owner: true,
+      },
+      select: {
+        owner: {
+          id: true,
+          displayName: true,
+          avaUrl: true,
+          contactPhone: true,
+        },
+      },
+    });
   }
 
   async findAll(user: any) {
@@ -43,10 +57,18 @@ export class ShopRepository {
     return await this.shopRepo.update({ id: shopId }, { status });
   }
 
-  async create(CreateShopDto: CreateShopDto) {
-    const newShop = await this.shopRepo.create(CreateShopDto);
+  async create(CreateShopDto: CreateShopDto, userId: number) {
+    const newShop = this.shopRepo.create({
+      ...CreateShopDto,
+      owner: { id: userId } as User, // Type cast
+    });
 
-    await this.shopRepo.save(newShop);
-    return newShop;
+    const savedShop = await this.shopRepo.save(newShop);
+
+    // Load lại với relation
+    return await this.shopRepo.findOne({
+      where: { id: savedShop.id },
+      relations: ['owner'],
+    });
   }
 }
