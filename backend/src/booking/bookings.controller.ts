@@ -34,11 +34,11 @@ export class BookingsController {
     return await this.bookingsService.createBooking(req.user.user_id, dto);
   }
 
-  // @Get('my')
-  // @UseGuards(JwtAuthGuard)
-  // async getMyBookings(@Request() req, @Query() query: QueryBookingDto) {
-  //   return await this.bookingsService.getUserBookings(req.user.user_id, query);
-  // }
+  @Get('my')
+  @UseGuards(JwtAuthGuard)
+  async getMyBookings(@Request() req, @Query() query: QueryBookingDto) {
+    return await this.bookingsService.getUserBookings(req.user.user_id, query);
+  }
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)
@@ -85,10 +85,6 @@ export class BookingsController {
     );
   }
 
-  /**
-   * CONFIRM BOOKING (Owner)
-   * PATCH /bookings/:id/confirm
-   */
   @Patch(':id/confirm')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('owner')
@@ -102,10 +98,6 @@ export class BookingsController {
     );
   }
 
-  /**
-   * REJECT BOOKING (Owner)
-   * PATCH /bookings/:id/reject
-   */
   @Patch(':id/reject')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('owner')

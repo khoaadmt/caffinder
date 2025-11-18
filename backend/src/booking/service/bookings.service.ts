@@ -227,7 +227,7 @@ export class BookingsService {
    * GET USER BOOKINGS
    */
   async getUserBookings(userId: number, query?: QueryBookingDto) {
-    const where: any = { userId };
+    const where: any = { user: { id: userId } };
 
     if (query?.date) {
       where.bookingDate = query.date;
