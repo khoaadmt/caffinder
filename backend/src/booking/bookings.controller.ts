@@ -89,32 +89,35 @@ export class BookingsController {
    * CONFIRM BOOKING (Owner)
    * PATCH /bookings/:id/confirm
    */
-  // @Patch(':id/confirm')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('shop_owner')
-  // async confirmBooking(
-  //   @Param('id', ParseIntPipe) bookingId: number,
-  //   @Request() req,
-  // ) {
-  //   return await this.bookingsService.confirmBooking(bookingId, req.user.id);
-  // }
+  @Patch(':id/confirm')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('owner')
+  async confirmBooking(
+    @Param('id', ParseIntPipe) bookingId: number,
+    @Request() req,
+  ) {
+    return await this.bookingsService.confirmBooking(
+      bookingId,
+      req.user.user_id,
+    );
+  }
 
   /**
    * REJECT BOOKING (Owner)
    * PATCH /bookings/:id/reject
    */
-  // @Patch(':id/reject')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('shop_owner')
-  // async rejectBooking(
-  //   @Param('id', ParseIntPipe) bookingId: number,
-  //   @Request() req,
-  //   @Body() dto: RejectBookingDto,
-  // ) {
-  //   return await this.bookingsService.rejectBooking(
-  //     bookingId,
-  //     req.user.id,
-  //     dto,
-  //   );
-  // }
+  @Patch(':id/reject')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('owner')
+  async rejectBooking(
+    @Param('id', ParseIntPipe) bookingId: number,
+    @Request() req,
+    @Body() dto: RejectBookingDto,
+  ) {
+    return await this.bookingsService.rejectBooking(
+      bookingId,
+      req.user.user_id,
+      dto,
+    );
+  }
 }

@@ -334,6 +334,7 @@ export class BookingsService {
    */
   async confirmBooking(bookingId: number, ownerId: number) {
     const booking = await this.bookingsRepository.findById(bookingId);
+    console.log('booking :', booking);
 
     if (!booking) {
       throw new NotFoundException('Booking không tồn tại');
