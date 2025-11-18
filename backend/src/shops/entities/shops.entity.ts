@@ -1,5 +1,6 @@
 import { User } from 'src/auth/entities/user.entity';
 import { Bookings } from 'src/booking/entities/bookings.entity';
+import { Favorite } from 'src/Favorite/entities/favorite.entity';
 import {
   Column,
   CreateDateColumn,
@@ -63,6 +64,9 @@ export class Shops {
 
   @OneToMany(() => Bookings, (booking) => booking.shop)
   bookings: Bookings[];
+
+  @OneToMany(() => Favorite, (favorite) => favorite.shop)
+  favorites: Favorite[];
 
   // @OneToMany(() => Reviews, (review) => review.shop)
   // reviews: Reviews[];

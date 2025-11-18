@@ -16,6 +16,7 @@ import { AuthModule } from './auth/auth.module';
 import { ShopsModule } from './shops/shops.module';
 import { VerifyTokenMiddleware } from './middlewares/logging.middleware';
 import { BookingsModule } from './booking/bookings.module';
+import { FavoriteModule } from './Favorite/favorite.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { BookingsModule } from './booking/bookings.module';
     AuthModule,
     ShopsModule,
     BookingsModule,
+    FavoriteModule,
   ],
   providers: [],
 })
