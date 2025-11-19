@@ -5,6 +5,7 @@ import { Shops } from '../entities/shops.entity';
 import { CreateShopDto } from '../dto/create-shops.dto';
 import { UpdateShopDto } from '../dto/update-shop.dto';
 import { User } from 'src/auth/entities/user.entity';
+import { QueryShopDto } from '../dto/query-shop.dto';
 
 @Injectable()
 export class ShopRepository {
@@ -30,23 +31,41 @@ export class ShopRepository {
     });
   }
 
-  async findAll(user: any) {
-    const query = this.shopRepo.createQueryBuilder('shop');
+  async findAll(query: QueryShopDto, user: any) {
+    const { page = 1, limit = 10 } = query;
+    const skip = (page - 1) * limit;
 
-    if (user.role === 'admin') {
-      return await query.orderBy('shop.updatedAt', 'DESC').getMany();
-    }
+    const queryBuilder = this.shopRepo.createQueryBuilder('shop');
 
-    if (user.role === 'owner') {
-      return await query
-        .where('shop.owner_id = :ownerId', { ownerId: user.id })
+    if (user?.role === 'admin') {
+      const [shops, total] = await queryBuilder
         .orderBy('shop.updatedAt', 'DESC')
-        .getMany();
+        .skip(skip)
+        .take(limit)
+        .getManyAndCount();
+
+      return { shops, total };
     }
 
-    return await query
+    if (user?.role === 'owner') {
+      const [shops, total] = await queryBuilder
+        .where('shop.ownerId = :ownerId', { ownerId: user.id })
+        .orderBy('shop.updatedAt', 'DESC')
+        .skip(skip)
+        .take(limit)
+        .getManyAndCount();
+
+      return { shops, total };
+    }
+
+    const [shops, total] = await queryBuilder
       .where('shop.status = :status', { status: 'approved' })
-      .getMany();
+      .orderBy('shop.updatedAt', 'DESC')
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    return { shops, total };
   }
 
   async updateShop(shopId: number, updateShopDto: UpdateShopDto) {

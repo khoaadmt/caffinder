@@ -8,11 +8,13 @@ import {
   Req,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { ShopService } from './service/shops.service';
 import { CreateShopDto } from './dto/create-shops.dto';
 import { UpdateShopDto } from './dto/update-shop.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { QueryShopDto } from './dto/query-shop.dto';
 
 @Controller('shops')
 export class ShopController {
@@ -23,9 +25,9 @@ export class ShopController {
     return await this.shopService.findShopById(shopId);
   }
 
-  @Get('')
-  async getAll(@Req() req) {
-    return await this.shopService.getAll(req.user);
+  @Get()
+  async getAllShops(@Query() query: QueryShopDto, @Req() req) {
+    return await this.shopService.getAllShops(query, req.user);
   }
 
   @Post('')
