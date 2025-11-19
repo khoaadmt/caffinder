@@ -113,7 +113,7 @@ export class ReviewRepository {
       shop: { id: shopId },
       rating,
       comment,
-      img: img || [], // ✅ Set img
+      img: img || [],
     });
     return await this.reviewRepo.save(review);
   }

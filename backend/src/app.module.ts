@@ -18,6 +18,7 @@ import { VerifyTokenMiddleware } from './middlewares/logging.middleware';
 import { BookingsModule } from './booking/bookings.module';
 import { FavoriteModule } from './Favorite/favorite.module';
 import { ReviewModule } from './reviews/review.module';
+import { MenuModule } from './menu/menu.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { ReviewModule } from './reviews/review.module';
     BookingsModule,
     FavoriteModule,
     ReviewModule,
+    MenuModule,
   ],
   providers: [],
 })

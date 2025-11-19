@@ -14,13 +14,11 @@ export class FavoriteService {
   ) {}
 
   async addFavorite(userId: number, shopId: number) {
-    // Kiểm tra shop có tồn tại không
     const shop = await this.shopRepository.findOneById(shopId);
     if (!shop) {
       throw new NotFoundException('Shop không tồn tại');
     }
 
-    // Kiểm tra đã favorite chưa
     const existing = await this.favoriteRepository.findByUserAndShop(
       userId,
       shopId,
@@ -29,7 +27,6 @@ export class FavoriteService {
       throw new ConflictException('Bạn đã yêu thích shop này rồi');
     }
 
-    // Tạo favorite
     const favorite = await this.favoriteRepository.create(userId, shopId);
 
     return {
@@ -43,7 +40,6 @@ export class FavoriteService {
   }
 
   async removeFavorite(userId: number, shopId: number) {
-    // Kiểm tra favorite có tồn tại không
     const existing = await this.favoriteRepository.findByUserAndShop(
       userId,
       shopId,
@@ -52,7 +48,6 @@ export class FavoriteService {
       throw new NotFoundException('Shop không có trong danh sách yêu thích');
     }
 
-    // Xóa favorite
     await this.favoriteRepository.delete(userId, shopId);
 
     return {

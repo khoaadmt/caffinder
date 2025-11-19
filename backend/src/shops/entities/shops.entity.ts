@@ -1,6 +1,7 @@
 import { User } from 'src/auth/entities/user.entity';
 import { Bookings } from 'src/booking/entities/bookings.entity';
 import { Favorite } from 'src/Favorite/entities/favorite.entity';
+import { Menu } from 'src/menu/entities/menu.entity';
 import { Review } from 'src/reviews/entities/review.entity';
 import {
   Column,
@@ -58,7 +59,6 @@ export class Shops {
   })
   status: string;
 
-  // Owner relation
   @ManyToOne(() => User, (user) => user.shops)
   @JoinColumn({ name: 'ownerId' })
   owner: User;
@@ -71,6 +71,9 @@ export class Shops {
 
   @OneToMany(() => Review, (review) => review.shop)
   reviews: Review[];
+
+  @OneToMany(() => Menu, (menu) => menu.shop)
+  menus: Menu[];
 
   @CreateDateColumn()
   createdAt: Date;

@@ -62,7 +62,6 @@ export class ReviewService {
   }
 
   async getShopReviews(shopId: number, query: QueryReviewDto) {
-    // Kiểm tra shop tồn tại
     const shop = await this.shopRepository.findOneById(shopId);
     if (!shop) {
       throw new NotFoundException('Shop không tồn tại');
@@ -101,23 +100,19 @@ export class ReviewService {
     ownerId: number,
     replyReviewDto: ReplyReviewDto,
   ) {
-    // Kiểm tra review tồn tại
     const review = await this.reviewRepository.findById(reviewId);
     if (!review) {
       throw new NotFoundException('Review không tồn tại');
     }
 
-    // Kiểm tra owner có sở hữu shop này không
     if (review.shop.owner.id !== ownerId) {
       throw new ForbiddenException('Bạn không có quyền phản hồi review này');
     }
 
-    // Kiểm tra đã reply chưa
     if (review.ownerReply) {
       throw new BadRequestException('Review này đã được phản hồi rồi');
     }
 
-    // Reply
     const updatedReview = await this.reviewRepository.reply(
       reviewId,
       replyReviewDto.ownerReply,
@@ -134,13 +129,11 @@ export class ReviewService {
   }
 
   async deleteReview(reviewId: number, adminId: number) {
-    // Kiểm tra review tồn tại
     const review = await this.reviewRepository.findById(reviewId);
     if (!review) {
       throw new NotFoundException('Review không tồn tại');
     }
 
-    // Xóa review
     await this.reviewRepository.delete(reviewId);
 
     return {

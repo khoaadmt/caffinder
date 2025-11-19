@@ -79,12 +79,11 @@ export class ShopRepository {
   async create(CreateShopDto: CreateShopDto, userId: number) {
     const newShop = this.shopRepo.create({
       ...CreateShopDto,
-      owner: { id: userId } as User, // Type cast
+      owner: { id: userId } as User,
     });
 
     const savedShop = await this.shopRepo.save(newShop);
 
-    // Load lại với relation
     return await this.shopRepo.findOne({
       where: { id: savedShop.id },
       relations: ['owner'],

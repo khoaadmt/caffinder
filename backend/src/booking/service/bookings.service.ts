@@ -311,7 +311,6 @@ export class BookingsService {
       order: { bookingDate: 'ASC', bookingTime: 'ASC' },
     });
 
-    // Group by date for better UX
     const grouped = bookings.reduce((acc, booking) => {
       const date = moment(booking.bookingDate).format('YYYY-MM-DD');
       if (!acc[date]) {
@@ -368,8 +367,6 @@ export class BookingsService {
 
     await this.bookingsRepo.save(booking);
 
-    // TODO: Send notification to user
-
     return {
       success: true,
       booking,
@@ -415,8 +412,6 @@ export class BookingsService {
     };
   }
 
-  //  CANCEL BOOKING (User)
-
   async cancelBooking(bookingId: number, userId: number) {
     const booking = await this.bookingsRepo
       .createQueryBuilder('booking')
@@ -445,7 +440,6 @@ export class BookingsService {
       );
     }
 
-    // Check phải hủy trước giờ booking ít nhất 2 tiếng
     const bookingDateTime = moment(
       `${booking.bookingDate} ${booking.bookingTime}`,
       'YYYY-MM-DD HH:mm',
