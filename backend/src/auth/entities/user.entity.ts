@@ -1,7 +1,12 @@
+import { Bookings } from 'src/booking/entities/bookings.entity';
+import { Favorite } from 'src/Favorite/entities/favorite.entity';
+import { Review } from 'src/reviews/entities/review.entity';
+import { Shops } from 'src/shops/entities/shops.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -42,8 +47,23 @@ export class User {
   @Column({ default: 'access_token' })
   accessToken: string;
 
-  @Column({ default: 'member' })
+  @Column({ default: 'user' })
   role: string;
+
+  @Column({ default: true })
+  isActive: boolean;
+
+  @OneToMany(() => Shops, (shop) => shop.owner)
+  shops: Shops;
+
+  @OneToMany(() => Bookings, (booking) => booking.user)
+  bookings: Bookings[];
+
+  @OneToMany(() => Favorite, (favorite) => favorite.user)
+  favorites: Favorite[];
+
+  @OneToMany(() => Review, (review) => review.user)
+  reviews: Review[];
 
   @CreateDateColumn()
   createdAt: Date;

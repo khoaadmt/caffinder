@@ -15,6 +15,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CheckPermissionMiddleware } from 'src/middlewares/checkPermission.middleware';
 import { User } from './entities/user.entity';
 import { UserRepository } from './repository/user.repository';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from './utils/jwt.strategy';
 require('dotenv').config();
 
 @Module({
@@ -23,10 +25,18 @@ require('dotenv').config();
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '1h' },
+      signOptions: { expiresIn: '7d' },
     }),
+    PassportModule,
   ],
-  providers: [AuthService, GoogleStrategy, FacebookStrategy, UserRepository],
+  providers: [
+    AuthService,
+    GoogleStrategy,
+    FacebookStrategy,
+    JwtStrategy,
+    UserRepository,
+  ],
+  exports: [JwtStrategy],
   controllers: [AuthController],
 })
 export class AuthModule implements NestModule {

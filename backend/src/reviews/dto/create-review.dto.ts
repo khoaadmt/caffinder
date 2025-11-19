@@ -1,0 +1,56 @@
+import {
+  IsArray,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Max,
+  Min,
+} from 'class-validator';
+
+export class CreateReviewDto {
+  @IsInt()
+  @Min(1, { message: 'Rating phải từ 1 đến 5' })
+  @Max(5, { message: 'Rating phải từ 1 đến 5' })
+  rating: number;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Nội dung đánh giá không được để trống' })
+  comment: string;
+
+  @IsOptional()
+  @IsArray({ message: 'img phải là một mảng' })
+  @IsUrl({}, { each: true, message: 'Mỗi phần tử phải là URL hợp lệ' })
+  img?: string[];
+}
+
+export class ReplyReviewDto {
+  @IsString()
+  @IsNotEmpty({ message: 'Nội dung phản hồi không được để trống' })
+  ownerReply: string;
+}
+
+import { Type } from 'class-transformer';
+
+export class QueryReviewDto {
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
+  page?: number = 1;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(50)
+  @Type(() => Number)
+  limit?: number = 10;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(5)
+  @Type(() => Number)
+  rating?: number;
+}

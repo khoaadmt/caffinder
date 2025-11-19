@@ -95,8 +95,16 @@ export class AuthService {
       ...registerUserDto,
       password: hashedPassword,
     });
-
-    throw new HttpException('Register user success', HttpStatus.OK);
+    return {
+      message: 'Register success.',
+      user: {
+        id: newUser.id,
+        username: newUser.username,
+        displayName: newUser.displayName,
+        avarUrl: newUser.avaUrl,
+        isActive: newUser.isActive,
+      },
+    };
   }
 
   async login(loginUserDto: LoginUserDto, @Res() res: Response) {

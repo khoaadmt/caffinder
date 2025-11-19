@@ -1,4 +1,9 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import * as crypto from 'crypto';
 
 if (!globalThis.crypto) {
@@ -8,6 +13,12 @@ if (!globalThis.crypto) {
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
+import { ShopsModule } from './shops/shops.module';
+import { VerifyTokenMiddleware } from './middlewares/logging.middleware';
+import { BookingsModule } from './booking/bookings.module';
+import { FavoriteModule } from './Favorite/favorite.module';
+import { ReviewModule } from './reviews/review.module';
+import { MenuModule } from './menu/menu.module';
 
 @Module({
   imports: [
@@ -29,7 +40,16 @@ import { AuthModule } from './auth/auth.module';
     }),
 
     AuthModule,
+    ShopsModule,
+    BookingsModule,
+    FavoriteModule,
+    ReviewModule,
+    MenuModule,
   ],
   providers: [],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(VerifyTokenMiddleware).forRoutes('*path');
+  }
+}
