@@ -60,7 +60,6 @@ export class ReviewRepository {
       .take(limit)
       .getManyAndCount();
 
-    // Tính average rating
     const avgResult = await this.reviewRepo
       .createQueryBuilder('review')
       .where('review.shopId = :shopId', { shopId })
@@ -107,12 +106,14 @@ export class ReviewRepository {
     shopId: number,
     rating: number,
     comment: string,
+    img?: string[],
   ): Promise<Review> {
     const review = this.reviewRepo.create({
       user: { id: userId },
       shop: { id: shopId },
       rating,
       comment,
+      img: img || [], // ✅ Set img
     });
     return await this.reviewRepo.save(review);
   }

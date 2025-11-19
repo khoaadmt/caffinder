@@ -24,18 +24,15 @@ export class ReviewService {
     shopId: number,
     createReviewDto: CreateReviewDto,
   ) {
-    // Kiểm tra shop tồn tại
     const shop = await this.shopRepository.findOneById(shopId);
     if (!shop) {
       throw new NotFoundException('Shop không tồn tại');
     }
 
-    // Kiểm tra shop đã được approve chưa
     if (shop.status !== 'approved') {
       throw new BadRequestException('Shop chưa được duyệt, không thể đánh giá');
     }
 
-    // Kiểm tra user đã review shop này chưa
     const hasReviewed = await this.reviewRepository.checkUserReviewed(
       userId,
       shopId,
@@ -44,12 +41,12 @@ export class ReviewService {
       throw new BadRequestException('Bạn đã đánh giá shop này rồi');
     }
 
-    // Tạo review
     const review = await this.reviewRepository.create(
       userId,
       shopId,
       createReviewDto.rating,
       createReviewDto.comment,
+      createReviewDto.img,
     );
 
     return {
@@ -58,6 +55,7 @@ export class ReviewService {
         id: review.id,
         rating: review.rating,
         comment: review.comment,
+        img: review.img,
         createdAt: review.createdAt,
       },
     };

@@ -1,8 +1,10 @@
 import {
+  IsArray,
   IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUrl,
   Max,
   Min,
 } from 'class-validator';
@@ -16,6 +18,11 @@ export class CreateReviewDto {
   @IsString()
   @IsNotEmpty({ message: 'Nội dung đánh giá không được để trống' })
   comment: string;
+
+  @IsOptional()
+  @IsArray({ message: 'img phải là một mảng' })
+  @IsUrl({}, { each: true, message: 'Mỗi phần tử phải là URL hợp lệ' })
+  img?: string[];
 }
 
 export class ReplyReviewDto {

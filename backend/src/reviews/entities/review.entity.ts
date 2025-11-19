@@ -21,6 +21,9 @@ export class Review {
   @Column({ type: 'text' })
   comment: string;
 
+  @Column('text', { array: true, default: [] })
+  img: string[];
+
   @Column({ type: 'text', nullable: true, default: null })
   ownerReply: string | null;
 
