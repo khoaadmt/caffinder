@@ -1,3 +1,4 @@
+// src/shops/dto/query-shop.dto.ts
 import { Type } from 'class-transformer';
 import {
   IsOptional,
@@ -34,22 +35,24 @@ export class QueryShopDto {
   search?: string;
 
   @IsOptional()
-  @IsString()
+  @IsEnum(['newest', 'most_favorite', 'distance', 'createdAt'])
   sortBy?: string;
 
   @IsOptional()
   @IsEnum(['ASC', 'DESC'])
   order?: 'ASC' | 'DESC' = 'DESC';
 
+  @IsOptional()
   @IsNumber()
   @IsLongitude()
   @Type(() => Number)
-  longitude: number;
+  longitude?: number;
 
+  @IsOptional()
   @IsNumber()
   @IsLatitude()
   @Type(() => Number)
-  latitude: number;
+  latitude?: number;
 
   @IsOptional()
   @IsNumber()

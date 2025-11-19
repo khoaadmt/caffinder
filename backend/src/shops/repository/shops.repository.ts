@@ -32,38 +32,80 @@ export class ShopRepository {
   }
 
   async findAll(query: QueryShopDto, user: any) {
-    const { page = 1, limit = 10 } = query;
+    const { page = 1, limit = 10, status, search, sortBy, order } = query;
     const skip = (page - 1) * limit;
 
-    const queryBuilder = this.shopRepo.createQueryBuilder('shop');
+    const queryBuilder = this.shopRepo
+      .createQueryBuilder('shop')
+      .leftJoinAndSelect('shop.owner', 'owner')
+      .leftJoin('shop.favorites', 'favorites')
+      .select([
+        'shop.id',
+        'shop.name',
+        'shop.img',
+        'shop.address',
+        'shop.description',
+        'shop.totalCapacity',
+        'shop.openTime',
+        'shop.closeTime',
+        'shop.latitude',
+        'shop.longitude',
+        'shop.status',
+        'shop.createdAt',
+        'shop.updatedAt',
+        'owner.id',
+        'owner.displayName',
+        'owner.avaUrl',
+        'owner.contactPhone',
+      ])
+      .addSelect('COUNT(favorites.id)', 'favorite_count');
 
     if (user?.role === 'admin') {
-      const [shops, total] = await queryBuilder
-        .orderBy('shop.updatedAt', 'DESC')
-        .skip(skip)
-        .take(limit)
-        .getManyAndCount();
-
-      return { shops, total };
+    } else if (user?.role === 'owner') {
+      queryBuilder.andWhere('shop.ownerId = :ownerId', { ownerId: user.id });
+    } else {
+      queryBuilder.andWhere('shop.status = :status', { status: 'approved' });
     }
 
-    if (user?.role === 'owner') {
-      const [shops, total] = await queryBuilder
-        .where('shop.ownerId = :ownerId', { ownerId: user.id })
-        .orderBy('shop.updatedAt', 'DESC')
-        .skip(skip)
-        .take(limit)
-        .getManyAndCount();
-
-      return { shops, total };
+    if (status) {
+      queryBuilder.andWhere('shop.status = :status', { status });
     }
 
-    const [shops, total] = await queryBuilder
-      .where('shop.status = :status', { status: 'approved' })
-      .orderBy('shop.updatedAt', 'DESC')
-      .skip(skip)
-      .take(limit)
-      .getManyAndCount();
+    if (search) {
+      queryBuilder.andWhere(
+        '(shop.name ILIKE :search OR shop.address ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
+    queryBuilder.groupBy('shop.id');
+    queryBuilder.addGroupBy('owner.id');
+
+    if (sortBy === 'newest') {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      queryBuilder.andWhere('shop.updatedAt >= :sevenDaysAgo', {
+        sevenDaysAgo,
+      });
+      queryBuilder.orderBy('shop.updatedAt', 'DESC');
+    } else if (sortBy === 'most_favorite') {
+      queryBuilder.orderBy('favorite_count', 'DESC');
+    } else if (sortBy === 'createdAt') {
+      queryBuilder.orderBy('shop.createdAt', order || 'DESC');
+    } else {
+      queryBuilder.orderBy('shop.updatedAt', 'DESC');
+    }
+
+    queryBuilder.skip(skip).take(limit);
+
+    const rawAndEntities = await queryBuilder.getRawAndEntities();
+    const total = rawAndEntities.entities.length;
+
+    const shops = rawAndEntities.entities.map((shop, index) => ({
+      ...shop,
+      favorite_count: parseInt(rawAndEntities.raw[index].favorite_count) || 0,
+    }));
 
     return { shops, total };
   }
