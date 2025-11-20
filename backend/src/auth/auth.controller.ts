@@ -3,6 +3,9 @@ import {
   Controller,
   Get,
   HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
   Post,
   Req,
   Res,
@@ -16,6 +19,10 @@ import { AuthGuard } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './services/auth.service';
 import type { Request, Response } from 'express';
+import path from 'path';
+import { RolesGuard } from './utils/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -66,9 +73,30 @@ export class AuthController {
     );
   }
 
+  @Get('users')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async getAllUsers() {
+    return await this.authService.getAllUser();
+  }
+
   @Post('refresh')
   async refreshToken(@Req() req: Request) {
     const refreshToken = req.cookies.refreshToken;
     return await this.authService.refreshToken(refreshToken);
+  }
+
+  @Patch('user/:id/block')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async blockUser(@Param('id', ParseIntPipe) user_id: number) {
+    return await this.authService.blockUser(user_id);
+  }
+
+  @Patch('user/:id/active')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async activeUser(@Param('id', ParseIntPipe) user_id: number) {
+    return await this.authService.activeUser(user_id);
   }
 }

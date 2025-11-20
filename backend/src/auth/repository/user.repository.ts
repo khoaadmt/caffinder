@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entities/user.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 @Injectable()
 export class UserRepository {
@@ -9,6 +9,24 @@ export class UserRepository {
     @InjectRepository(User)
     private userRepo: Repository<User>,
   ) {}
+
+  async getAll() {
+    return await this.userRepo.findAndCount({
+      where: { role: In(['owner', 'user']) },
+    });
+  }
+
+  async block(user_id: number) {
+    return await this.userRepo.update({ id: user_id }, { isActive: false });
+  }
+
+  async active(user_id: number) {
+    return await this.userRepo.update({ id: user_id }, { isActive: true });
+  }
+
+  async findById(user_id: number) {
+    return await this.userRepo.findOneBy({ id: user_id });
+  }
 
   async findOneByUsername(username: string): Promise<User | null> {
     return this.userRepo.findOne({ where: { username } });

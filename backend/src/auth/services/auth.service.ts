@@ -5,6 +5,7 @@ import { RegisterUserDto } from '../dto/register-user.dto';
 import { LoginUserDto } from '../dto/login.dto';
 import type { Request, Response } from 'express';
 import { UserRepository } from '../repository/user.repository';
+import { throwError } from 'rxjs';
 require('dotenv').config();
 
 @Injectable()
@@ -13,6 +14,53 @@ export class AuthService {
     private readonly userRepository: UserRepository,
     private jwtService: JwtService,
   ) {}
+
+  async getAllUser() {
+    const [users, total] = await this.userRepository.getAll();
+
+    return {
+      users,
+      total,
+    };
+  }
+
+  async blockUser(user_id: number) {
+    const userExisting = await this.userRepository.findById(user_id);
+    if (!userExisting) {
+      throw new HttpException(
+        {
+          status: 'error',
+          message: 'user not found.',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    await this.userRepository.block(user_id);
+
+    return {
+      status: 'success',
+      message: 'User blocked successfully.',
+    };
+  }
+
+  async activeUser(user_id: number) {
+    const userExisting = await this.userRepository.findById(user_id);
+    if (!userExisting) {
+      throw new HttpException(
+        {
+          status: 'error',
+          message: 'user not found.',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    await this.userRepository.active(user_id);
+
+    return {
+      status: 'success',
+      message: 'User actived successfully.',
+    };
+  }
 
   async loginWithGoogle(profile_google: any) {
     const displayName = profile_google.displayName;

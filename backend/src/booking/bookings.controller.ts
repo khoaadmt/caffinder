@@ -46,7 +46,6 @@ export class BookingsController {
     @Param('id', ParseIntPipe) bookingId: number,
     @Request() req,
   ) {
-    console.log('req.user.id :', req.user.id);
     return await this.bookingsService.getBookingDetail(
       bookingId,
       req.user.user_id,
