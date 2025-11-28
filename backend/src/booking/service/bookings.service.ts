@@ -15,6 +15,8 @@ import * as moment from 'moment';
 import { BookingRepository } from '../repository/booking.repository';
 import { RejectBookingDto } from '../dto/update-booking-status.dto';
 import { ShopRepository } from 'src/shops/repository/shops.repository';
+import * as dayjs from 'dayjs';
+
 
 @Injectable()
 export class BookingsService {
@@ -67,8 +69,7 @@ export class BookingsService {
       .add(shop.defaultDuration, 'minutes');
     if (endTime.isAfter(closeTime)) {
       throw new BadRequestException(
-        `Với thời gian ${shop.defaultDuration} phút, bạn cần đặt trước ${closeTime}`,
-      );
+        `Bởi vì quán sẽ đóng cửa lúc ${closeTime.format('HH:mm')} nên bạn cần đặt trước ${closeTime.format('HH:mm')} tối thiểu là ${shop.defaultDuration} phút`      );
     }
 
     const requestStart = moment(time, 'HH:mm');
