@@ -15,6 +15,8 @@ import { CreateShopDto } from './dto/create-shops.dto';
 import { UpdateShopDto } from './dto/update-shop.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { QueryShopDto } from './dto/query-shop.dto';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { RolesGuard } from 'src/auth/utils/roles.guard';
 
 @Controller('shops')
 export class ShopController {
@@ -25,13 +27,21 @@ export class ShopController {
     return await this.shopService.findShopById(shopId);
   }
 
+  @Get('owner')
+  @UseGuards(JwtAuthGuard)
+  async getAllShopsByOwnerId(@Req() req) {
+    const ownerId = req.user.user_id;
+    return await this.shopService.getAllShopsByOwnerId(ownerId);
+  }
+
   @Get()
   async getAllShops(@Query() query: QueryShopDto, @Req() req) {
     return await this.shopService.getAllShops(query, req.user);
   }
 
   @Post('')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('owner')
   async createShop(@Body() createShopDto: CreateShopDto, @Request() req) {
     return await this.shopService.createShop(createShopDto, req.user.user_id);
   }

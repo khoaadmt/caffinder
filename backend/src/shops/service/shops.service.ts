@@ -23,6 +23,10 @@ export class ShopService {
     return { shop };
   }
 
+  async getAllShopsByOwnerId(ownerId: number) {
+    return;
+  }
+
   async getAllShops(query: QueryShopDto, user: any) {
     let { shops, total } = await this.shopRepository.findAll(query, user);
 
