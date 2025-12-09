@@ -31,6 +31,20 @@ export class ShopRepository {
     });
   }
 
+  async findByOwnerId(id: number): Promise<Shops[]> {
+    return await this.shopRepo
+      .createQueryBuilder('shop')
+      .leftJoin('shop.owner', 'owner')
+      .addSelect([
+        'owner.id',
+        'owner.displayName',
+        'owner.avaUrl',
+        'owner.contactPhone',
+      ])
+      .where('owner.id = :id', { id })
+      .getMany();
+  }
+
   async findAll(query: QueryShopDto, user: any) {
     const { page = 1, limit = 10, status, search, sortBy, order } = query;
     const skip = (page - 1) * limit;

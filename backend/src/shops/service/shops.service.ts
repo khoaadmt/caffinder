@@ -24,7 +24,7 @@ export class ShopService {
   }
 
   async getAllShopsByOwnerId(ownerId: number) {
-    return;
+    return await this.shopRepository.findByOwnerId(ownerId);
   }
 
   async getAllShops(query: QueryShopDto, user: any) {

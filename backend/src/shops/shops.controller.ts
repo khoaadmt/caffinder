@@ -22,16 +22,16 @@ import { RolesGuard } from 'src/auth/utils/roles.guard';
 export class ShopController {
   constructor(private readonly shopService: ShopService) {}
 
-  @Get(':id')
-  async getShopById(@Param('id') shopId: number) {
-    return await this.shopService.findShopById(shopId);
-  }
-
   @Get('owner')
   @UseGuards(JwtAuthGuard)
   async getAllShopsByOwnerId(@Req() req) {
     const ownerId = req.user.user_id;
     return await this.shopService.getAllShopsByOwnerId(ownerId);
+  }
+
+  @Get(':id')
+  async getShopById(@Param('id') shopId: number) {
+    return await this.shopService.findShopById(shopId);
   }
 
   @Get()
