@@ -23,6 +23,7 @@ import path from 'path';
 import { RolesGuard } from './utils/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { updateUserInforDto } from './dto/update-user-infor.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -98,5 +99,15 @@ export class AuthController {
   @Roles('admin')
   async activeUser(@Param('id', ParseIntPipe) user_id: number) {
     return await this.authService.activeUser(user_id);
+  }
+
+  @Patch('user/me')
+  @UseGuards(JwtAuthGuard)
+  async updateInfor(
+    @Body() userInfor: updateUserInforDto,
+    @Req() req: Request,
+  ) {
+    const userId = req.user.user_id;
+    return await this.authService.updateInfor(userId, userInfor);
   }
 }

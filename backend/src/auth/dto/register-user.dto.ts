@@ -23,6 +23,12 @@ export class RegisterUserDto {
   @IsNotEmpty()
   password: string;
 
+  @IsOptional()
+  contactPhone: string;
+
+  @IsOptional()
+  email: string;
+
   @IsString()
   @IsOptional()
   role: string;

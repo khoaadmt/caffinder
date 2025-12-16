@@ -39,6 +39,9 @@ export class User {
   contactPhone: string;
 
   @Column({ default: '' })
+  email: string;
+
+  @Column({ default: '' })
   facebookId: string;
 
   @Column({ default: 'refresh_token' })

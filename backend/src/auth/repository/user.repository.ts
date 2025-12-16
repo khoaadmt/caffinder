@@ -32,9 +32,16 @@ export class UserRepository {
     return this.userRepo.findOne({ where: { username } });
   }
 
-  async updateUser(user: User, data: Partial<User>): Promise<User> {
+  async updateUser(user: User, data: Partial<User>) {
     Object.assign(user, data);
-    return this.userRepo.save(user);
+    await this.userRepo.save(user);
+    const newUser = {
+      displayName: user.displayName,
+      contactPhone: user.contactPhone,
+      email: user.email,
+      avaUrl: user.avaUrl,
+    };
+    return newUser;
   }
 
   async findUserByFacebookType(username: string) {

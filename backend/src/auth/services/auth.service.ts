@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Injectable, Res } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+  Res,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterUserDto } from '../dto/register-user.dto';
@@ -6,6 +12,7 @@ import { LoginUserDto } from '../dto/login.dto';
 import type { Request, Response } from 'express';
 import { UserRepository } from '../repository/user.repository';
 import { throwError } from 'rxjs';
+import { updateUserInforDto } from '../dto/update-user-infor.dto';
 require('dotenv').config();
 
 @Injectable()
@@ -14,6 +21,24 @@ export class AuthService {
     private readonly userRepository: UserRepository,
     private jwtService: JwtService,
   ) {}
+
+  async updateInfor(userId: number, userInfor: updateUserInforDto) {
+    const existingUser = await this.userRepository.findById(userId);
+    if (!existingUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    const newUser = await this.userRepository.updateUser(
+      existingUser,
+      userInfor,
+    );
+
+    return {
+      status: HttpStatus.OK,
+      message: 'update user sucess.',
+      newUser,
+    };
+  }
 
   async getAllUser() {
     const [users, total] = await this.userRepository.getAll();
