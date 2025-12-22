@@ -48,6 +48,7 @@ export class ShopService {
         shops,
       );
     }
+    console.log('shops :', shops);
     //fake data
     const distance = { text: '9.86 km', value: '9860', fake_data: true };
 
@@ -157,6 +158,7 @@ export class ShopService {
     locations: Shops[],
   ) {
     const result = [];
+    let i = 0;
     for (const location of locations) {
       const distance = this.distanceBetween2Points(
         latitude,
@@ -166,7 +168,6 @@ export class ShopService {
       );
       if (distance + 1 <= radius) {
         result.push(location);
-        break;
       }
     }
     return result;
