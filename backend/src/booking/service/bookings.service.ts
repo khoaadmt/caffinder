@@ -312,7 +312,7 @@ export class BookingsService {
           contactPhone: true,
         },
       },
-      order: { bookingDate: 'ASC', bookingTime: 'ASC' },
+      order: { createdAt: 'DESC' },
     });
 
     const grouped = bookings.reduce((acc, booking) => {
