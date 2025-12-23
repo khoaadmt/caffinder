@@ -28,17 +28,35 @@ export class ShopService {
   }
 
   async getAllShops(query: QueryShopDto, user: any) {
+    if (!query.limit) {
+      query.limit = 10;
+    }
+    if (!query.page) {
+      query.page = 1;
+    }
     let { shops, total } = await this.shopRepository.findAll(query, user);
+    if (!query.latitude) {
+      return {
+        message: 'Lấy danh sách shops thành công',
+        data: shops,
+        pagination: {
+          page: query.page || 1,
+          limit: query.limit || 10,
+          total,
+          totalPages: Math.ceil(total / (query.limit || 10)),
+        },
+      };
+    }
 
-    // const shopsWithDistance = await Bluebird.map(shops, async (shop) => {
-    //   const distance = await this.realDistanceBetween2Points(
-    //     query.latitude,
-    //     query.longitude,
-    //     shop.latitude,
-    //     shop.longitude,
-    //   );
-    //   return { ...shop, distance };
-    // });
+    const shopsWithDistance = await Bluebird.map(shops, async (shop) => {
+      const distance = await this.realDistanceBetween2Points(
+        query.latitude,
+        query.longitude,
+        shop.latitude,
+        shop.longitude,
+      );
+      return { ...shop, distance };
+    });
 
     if (query.radius) {
       shops = this.getLocationsWithinRadius(
@@ -50,11 +68,11 @@ export class ShopService {
     }
     console.log('shops :', shops);
     //fake data
-    const distance = { text: '9.86 km', value: '9860', fake_data: true };
+    // const distance = { text: '9.86 km', value: '9860', fake_data: true };
 
-    const shopsWithDistance = shops.map((shop) => {
-      return { ...shop, distance };
-    });
+    // const shopsWithDistance = shops.map((shop) => {
+    //   return { ...shop, distance };
+    // });
 
     return {
       message: 'Lấy danh sách shops thành công',
