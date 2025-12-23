@@ -47,7 +47,14 @@ export class ShopService {
         },
       };
     }
-
+    if (query.radius) {
+      shops = this.getLocationsWithinRadius(
+        query.latitude,
+        query.longitude,
+        query.radius,
+        shops,
+      );
+    }
     const shopsWithDistance = await Bluebird.map(shops, async (shop) => {
       const distance = await this.realDistanceBetween2Points(
         query.latitude,
@@ -58,15 +65,6 @@ export class ShopService {
       return { ...shop, distance };
     });
 
-    if (query.radius) {
-      shops = this.getLocationsWithinRadius(
-        query.latitude,
-        query.longitude,
-        query.radius,
-        shops,
-      );
-    }
-    console.log('shops :', shops);
     //fake data
     // const distance = { text: '9.86 km', value: '9860', fake_data: true };
 
@@ -80,7 +78,7 @@ export class ShopService {
       pagination: {
         page: query.page || 1,
         limit: query.limit || 10,
-        total,
+        total: shopsWithDistance.length,
         totalPages: Math.ceil(total / (query.limit || 10)),
       },
     };
