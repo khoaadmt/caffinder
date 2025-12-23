@@ -17,7 +17,6 @@ import { RejectBookingDto } from '../dto/update-booking-status.dto';
 import { ShopRepository } from 'src/shops/repository/shops.repository';
 import * as dayjs from 'dayjs';
 
-
 @Injectable()
 export class BookingsService {
   constructor(
@@ -69,7 +68,8 @@ export class BookingsService {
       .add(shop.defaultDuration, 'minutes');
     if (endTime.isAfter(closeTime)) {
       throw new BadRequestException(
-        `Bởi vì quán sẽ đóng cửa lúc ${closeTime.format('HH:mm')} nên bạn cần đặt trước ${closeTime.format('HH:mm')} tối thiểu là ${shop.defaultDuration} phút`      );
+        `Bởi vì quán sẽ đóng cửa lúc ${closeTime.format('HH:mm')} nên bạn cần đặt trước ${closeTime.format('HH:mm')} tối thiểu là ${shop.defaultDuration} phút`,
+      );
     }
 
     const requestStart = moment(time, 'HH:mm');
@@ -289,7 +289,9 @@ export class BookingsService {
       throw new ForbiddenException('Bạn không phải chủ quán này');
     }
 
-    const where: any = { shopId };
+    const where: any = {
+      shop: { id: shopId },
+    };
 
     if (query?.date) {
       where.bookingDate = query.date;
@@ -300,6 +302,7 @@ export class BookingsService {
     }
 
     const bookings = await this.bookingsRepo.find({
+      where,
       relations: ['user'],
       select: {
         user: {
