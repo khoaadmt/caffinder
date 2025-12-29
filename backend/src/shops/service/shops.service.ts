@@ -28,18 +28,25 @@ export class ShopService {
   }
 
   async getAllShops(query: QueryShopDto, user: any) {
+    if (!query.limit) {
+      query.limit = 10;
+    }
+    if (!query.page) {
+      query.page = 1;
+    }
     let { shops, total } = await this.shopRepository.findAll(query, user);
-
-    // const shopsWithDistance = await Bluebird.map(shops, async (shop) => {
-    //   const distance = await this.realDistanceBetween2Points(
-    //     query.latitude,
-    //     query.longitude,
-    //     shop.latitude,
-    //     shop.longitude,
-    //   );
-    //   return { ...shop, distance };
-    // });
-
+    if (!query.latitude) {
+      return {
+        message: 'Lấy danh sách shops thành công',
+        data: shops,
+        pagination: {
+          page: query.page || 1,
+          limit: query.limit || 10,
+          total,
+          totalPages: Math.ceil(total / (query.limit || 10)),
+        },
+      };
+    }
     if (query.radius) {
       shops = this.getLocationsWithinRadius(
         query.latitude,
@@ -48,13 +55,22 @@ export class ShopService {
         shops,
       );
     }
-    console.log('shops :', shops);
-    //fake data
-    const distance = { text: '9.86 km', value: '9860', fake_data: true };
-
-    const shopsWithDistance = shops.map((shop) => {
+    const shopsWithDistance = await Bluebird.map(shops, async (shop) => {
+      const distance = await this.realDistanceBetween2Points(
+        query.latitude,
+        query.longitude,
+        shop.latitude,
+        shop.longitude,
+      );
       return { ...shop, distance };
     });
+
+    //fake data
+    // const distance = { text: '9.86 km', value: '9860', fake_data: true };
+
+    // const shopsWithDistance = shops.map((shop) => {
+    //   return { ...shop, distance };
+    // });
 
     return {
       message: 'Lấy danh sách shops thành công',
@@ -62,7 +78,7 @@ export class ShopService {
       pagination: {
         page: query.page || 1,
         limit: query.limit || 10,
-        total,
+        total: shopsWithDistance.length,
         totalPages: Math.ceil(total / (query.limit || 10)),
       },
     };
